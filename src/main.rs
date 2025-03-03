@@ -1,60 +1,37 @@
 use std::io::{self, Write};
 
-/* -------------------------------------------------------------------------- */
-/*                                    Model                                   */
-/* -------------------------------------------------------------------------- */
+use activities::init_activities;
+use requests::init_requests;
+use roommates::{Roommate, init};
 
-static ROOMMATES_NAME: &[&str] = &["Ed'", "Cocoa", "Elia", "Marie", "Myriam", "Mae", "Flo"];
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
-struct Roommate {
-    name: String,
-    happiness: u8,
-    energy: u8,
-}
-
-impl Default for Roommate {
-    fn default() -> Self {
-        Roommate {
-            name: String::new(),
-            happiness: 10,
-            energy: 8,
-        }
-    }
-}
-
-impl Roommate {
-    fn new(name: String) -> Self {
-        Roommate {
-            name,
-            ..Default::default()
-        }
-    }
-}
-
-fn init() -> Vec<Roommate> {
-    let mut roommates = vec![];
-    for name in ROOMMATES_NAME {
-        let mut roommate = Roommate::new(name.to_string());
-        roommate.happiness = rand::random::<u8>() % 11; // Random happiness between 0 and 10
-        roommates.push(roommate);
-    }
-    roommates
-}
+mod activities;
+mod constraints;
+mod requests;
+mod roommates;
 
 /* -------------------------------------------------------------------------- */
 /*                                Gameplay loop                               */
 /* -------------------------------------------------------------------------- */
 
 fn main() {
-    let roommates = init();
+    let mut roommates = init();
     let mut days = 1;
+    let activities = init_activities();
 
     while days <= 7 && !roommates.iter().any(|r| r.happiness == 0) {
         print_status(roommates.clone(), days);
-        println!("Myriam: GIMME THE SWITCH!");
         // TODO: feat - browse though request
         // TODO: feat - assign activities
+
+        // show all requests
+        let requests = init_requests(&roommates, &activities);
+        for request in &requests {
+            println!("{}", request.display())
+        }
+        // // show all activities
+        // for activity in &activities {
+        //     println!("- {}", activity.display())
+        // }
 
         /* ------------------------------- End of Day ------------------------------- */
         let mut input = String::new();
@@ -62,6 +39,9 @@ fn main() {
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut input).unwrap();
         days += 1;
+
+        /* ------------ Compute happiness gained/lost, energy consumed ------------ */
+        roommates = init();
     }
 
     print_status(roommates.clone(), days);
