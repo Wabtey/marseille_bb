@@ -1,7 +1,7 @@
 use crate::constraints::Constraints;
 
 /// You can't assign an activity twice to the same person
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Activity {
     pub name: &'static str,
     pub full_sentences: &'static [&'static str],

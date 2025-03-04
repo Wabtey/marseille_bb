@@ -1,6 +1,9 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
-use activities::init_activities;
+use activities::{Activity, init_activities};
 use requests::init_requests;
 use roommates::{Roommate, init};
 
@@ -17,21 +20,25 @@ fn main() {
     let mut roommates = init();
     let mut days = 1;
     let activities = init_activities();
+    // (Activity, start hour/min, end hour/min)
+    let mut assigned_activities: HashMap<(Roommate, Activity), ((u8, u8), (u8, u8))> =
+        HashMap::new();
 
     while days <= 7 && !roommates.iter().any(|r| r.happiness == 0) {
         print_status(roommates.clone(), days);
         // TODO: feat - browse though request
-        // TODO: feat - assign activities
 
         // show all requests
         let requests = init_requests(&roommates, &activities);
         for request in &requests {
             println!("{}", request.to_natural_language())
         }
-        // // show all activities
-        // for activity in &activities {
-        //     println!("- {}", activity.display())
-        // }
+
+        assign_activity(
+            roommates.clone(),
+            activities.clone(),
+            &mut assigned_activities,
+        );
 
         /* ------------------------------- End of Day ------------------------------- */
         let mut input = String::new();
@@ -96,4 +103,68 @@ fn print_status(roommates: Vec<Roommate>, days: u8) {
         }
         println!();
     }
+}
+
+/// TODO: feat - assign activities
+fn assign_activity(
+    roommates: Vec<Roommate>,
+    activities: Vec<Activity>,
+    assigned_activities: &mut HashMap<(Roommate, Activity), ((u8, u8), (u8, u8))>,
+) {
+    println!("Assign activities to a roommate:");
+    for (i, roommate) in roommates.iter().enumerate() {
+        println!("{}: {}", i + 1, roommate.name);
+    }
+
+    let mut input = String::new();
+    print!("Select a roommate by number: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    let roommate_index: usize = input.trim().parse().unwrap();
+    let selected_roommate = &roommates[roommate_index - 1];
+
+    println!("Select an activity:");
+    for (i, activity) in activities.iter().enumerate() {
+        println!("{}: {}", i + 1, activity.display());
+    }
+
+    input.clear();
+    print!("Select an activity by number: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    let activity_index: usize = input.trim().parse().unwrap();
+    let selected_activity = &activities[activity_index - 1];
+
+    input.clear();
+    print!("Enter start time (HH MM): ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    let mut start_time: Vec<u8> = input
+        .split_whitespace()
+        .map(|s| s.parse().unwrap())
+        .collect();
+
+    if start_time.len() == 1 {
+        start_time.push(0)
+    }
+
+    let duration = selected_activity.duration;
+    let end_hour = start_time[0] + duration.0 + (start_time[1] + duration.1) / 60;
+    let end_minute = (start_time[1] + duration.1) % 60;
+    let end_time = [end_hour, end_minute];
+
+    assigned_activities.insert(
+        (selected_roommate.clone(), selected_activity.clone()),
+        ((start_time[0], start_time[1]), (end_time[0], end_time[1])),
+    );
+
+    println!(
+        "{} has been assigned to {} from {:02}:{:02} to {:02}:{:02}",
+        selected_roommate.name,
+        selected_activity.display(),
+        start_time[0],
+        start_time[1],
+        end_time[0],
+        end_time[1]
+    );
 }
