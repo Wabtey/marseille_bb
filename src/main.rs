@@ -26,7 +26,7 @@ fn main() {
         // show all requests
         let requests = init_requests(&roommates, &activities);
         for request in &requests {
-            println!("{}", request.display())
+            println!("{}", request.to_natural_language())
         }
         // // show all activities
         // for activity in &activities {

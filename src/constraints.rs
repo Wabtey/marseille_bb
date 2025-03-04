@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct Constraints {
     /// (min, max)
     pub people: Option<(u8, u8)>,

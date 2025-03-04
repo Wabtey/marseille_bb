@@ -1,6 +1,6 @@
 static ROOMMATES_NAME: &[&str] = &["Ed'", "Cocoa", "Elia", "Marie", "Myriam", "Mae", "Flo"];
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Hash, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Roommate {
     pub name: String,
     pub happiness: u8,

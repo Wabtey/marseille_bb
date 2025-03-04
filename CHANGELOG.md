@@ -13,6 +13,8 @@
   - browse through past days and activities
 - action
   - fire roommate (big malus but gambling on the happiness lose)
+- localization
+  - choose between english and french
 
 ## v0.1
 
