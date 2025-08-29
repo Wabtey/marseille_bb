@@ -3,9 +3,9 @@ use std::{
     io::{self, Write},
 };
 
-use activities::{Activity, init_activities};
-use requests::init_requests;
-use roommates::{Roommate, init};
+use activities::{init_activities, Activity};
+use requests::{browse_requests, init_requests};
+use roommates::{init, Roommate};
 
 mod activities;
 mod constraints;
@@ -18,20 +18,20 @@ mod roommates;
 
 fn main() {
     let mut roommates = init();
-    let mut days = 1;
+    let mut day = 1;
     let activities = init_activities();
     // (Activity, start hour/min, end hour/min)
     let mut assigned_activities: HashMap<(Roommate, Activity), ((u8, u8), (u8, u8))> =
         HashMap::new();
 
-    while days <= 7 && !roommates.iter().any(|r| r.happiness == 0) {
-        print_status(roommates.clone(), days);
+    while day <= 7 && !roommates.iter().any(|r| r.happiness == 0) {
+        // print_status(roommates.clone(), day);
         // TODO: feat - browse though request
 
         // show all requests
         let requests = init_requests(&roommates, &activities);
-        for request in &requests {
-            println!("{}", request.to_natural_language())
+        if let Err(e) = browse_requests(&requests, &roommates, day) {
+            eprintln!("Error while browsing requests: {}", e);
         }
 
         assign_activity(
@@ -45,15 +45,20 @@ fn main() {
         print!("Press return to advance the day...");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut input).unwrap();
-        days += 1;
+        day += 1;
 
         /* ------------ Compute happiness gained/lost, energy consumed ------------ */
         roommates = init();
+        /*
+        How can I compute such gain?
+        - From every actions/events chosen get their happiness factor and apply it a random factor
+        - Each person implic
+         */
     }
 
-    print_status(roommates.clone(), days);
+    print_status(roommates.clone(), day);
 
-    if days == 8 {
+    if day == 8 {
         println!("GG");
     } else {
         println!(
@@ -67,9 +72,9 @@ fn main() {
 /*                                     CLI                                    */
 /* -------------------------------------------------------------------------- */
 
-fn print_status(roommates: Vec<Roommate>, days: u8) {
+pub fn print_status(roommates: Vec<Roommate>, day: u8) {
     print!("\x1B[2J\x1B[1;1H");
-    println!("{:-^90}", format!("Day {}", days));
+    println!("{:-^90}", format!("Day {}", day));
     let mut index = 0;
     while index < roommates.len() {
         let remaining = roommates.len() - index;
